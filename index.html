@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaskoRadar PRO | Eksik Sigorta & Rayiç Değer Koruma Simülatörü</title>
+    <!-- Fontlar -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Rajdhani:wght@600;700;800&family=Fira+Code:wght@500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root[data-theme="light"] {
+            --bg-base: #f8fafc;
+            --panel-bg: #ffffff;
+            --panel-border: rgba(225, 29, 72, 0.2);
+            --input-bg: #f1f5f9;
+            --input-border: #cbd5e1;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --grid-line: rgba(225, 29, 72, 0.05);
+        }
+
+        :root[data-theme="dark"] {
+            --bg-base: #090d16;
+            --panel-bg: rgba(15, 23, 42, 0.85);
+            --panel-border: rgba(225, 29, 72, 0.25);
+            --input-bg: rgba(9, 13, 22, 0.8);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+            --nav-bg: rgba(9, 13, 22, 0.95);
+            --grid-line: rgba(225, 29, 72, 0.08);
+        }
+
+        :root {
+            --accent-rose: #e11d48;
+            --accent-red: #f43f5e;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-blue: #0284c7;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; }
+        body {
+            background: var(--bg-base);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: radial-gradient(var(--grid-line) 1px, transparent 1px);
+            background-size: 24px 24px;
+            overflow-x: hidden;
+        }
+
+        /* ================= NAVBAR ================= */
+        .navbar {
+            background: var(--nav-bg);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--panel-border);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .brand-box { display: flex; align-items: center; gap: 12px; }
+        .brand-icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: linear-gradient(135deg, #e11d48, #f43f5e);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; color: #fff;
+            box-shadow: 0 0 20px rgba(225, 29, 72, 0.4);
+        }
+        .brand-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 22px; font-weight: 800;
+            color: var(--text-main); line-height: 1.1;
+        }
+        .brand-sub { font-size: 10.5px; color: var(--accent-rose); font-weight: 700; }
+
+        .nav-actions { display: flex; align-items: center; gap: 12px; }
+
+        .theme-toggle-btn {
+            background: var(--input-bg);
+            border: 1px solid var(--panel-border);
+            color: var(--text-main);
+            padding: 8px 12px; border-radius: 10px;
+            cursor: pointer; font-size: 13px; font-weight: 700;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .theme-toggle-btn:hover { border-color: var(--accent-rose); }
+
+        .dev-badge-nav {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--input-bg);
+            padding: 6px 14px; border-radius: 30px;
+            border: 1px solid var(--panel-border);
+            text-decoration: none; transition: 0.3s ease;
+        }
+        .dev-badge-nav:hover {
+            border-color: var(--accent-rose);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(225, 29, 72, 0.3);
+        }
+        .dev-avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            border: 2px solid var(--accent-rose);
+        }
+        .dev-name { font-size: 11.5px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 4px; }
+        .dev-role { font-size: 9.5px; color: var(--accent-rose); font-weight: 600; }
+
+        /* ================= 3M EKOSİSTEM BANDI ================= */
+        .ecosystem-bar {
+            max-width: 1480px; margin: 14px auto 0; padding: 0 16px;
+        }
+        .ecosystem-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px; padding: 10px 16px;
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+            gap: 10px; box-shadow: var(--card-shadow);
+        }
+        .eco-tier { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+        .eco-tag {
+            padding: 3px 7px; border-radius: 6px; font-size: 9.5px; font-weight: 800;
+            text-transform: uppercase;
+        }
+        .tag-mutfak { background: rgba(225, 29, 72, 0.15); color: var(--accent-rose); border: 1px solid rgba(225, 29, 72, 0.3); }
+        .tag-model { background: rgba(2, 132, 199, 0.15); color: var(--accent-blue); border: 1px solid rgba(2, 132, 199, 0.3); }
+        .tag-medya { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        /* ================= ANA MATRİS ================= */
+        .main-container {
+            max-width: 1480px; margin: 14px auto; padding: 0 16px;
+            display: grid;
+            grid-template-columns: 380px 1fr 390px;
+            gap: 16px;
+        }
+
+        @media (max-width: 1150px) {
+            .main-container { grid-template-columns: 1fr; }
+        }
+
+        .dark-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 14px; padding: 18px;
+            box-shadow: var(--card-shadow);
+            display: flex; flex-direction: column; gap: 14px;
+        }
+
+        .panel-title {
+            font-size: 11.5px; font-weight: 800; color: var(--text-main);
+            letter-spacing: 0.8px; text-transform: uppercase;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--panel-border); padding-bottom: 8px;
+        }
+
+        /* FORM */
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-group label { font-size: 10.5px; font-weight: 700; color: var(--text-muted); }
+        .form-control {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px; padding: 8px 10px;
+            color: var(--text-main); font-size: 11.5px; font-weight: 600;
+            outline: none; font-family: inherit;
+        }
+        .form-control:focus {
+            border-color: var(--accent-rose);
+            box-shadow: 0 0 10px rgba(225, 29, 72, 0.25);
+        }
+
+        /* RADAR GÖSTERGESİ */
+        .radar-box {
+            background: var(--input-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px; padding: 16px;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            position: relative; overflow: hidden;
+        }
+        .radar-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .radar-value {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 38px; font-weight: 800; color: var(--accent-rose);
+            line-height: 1;
+        }
+
+        /* STAT KARTLARI */
+        .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .stat-card {
+            background: var(--input-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px; padding: 10px 12px;
+        }
+        .stat-label { font-size: 9.5px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+        .stat-val {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 19px; font-weight: 800; color: var(--text-main); margin-top: 2px;
+        }
+
+        .alert-box {
+            padding: 10px 12px; border-radius: 8px; font-size: 11px;
+            line-height: 1.4; display: flex; align-items: center; gap: 10px;
+        }
+        .alert-danger {
+            background: rgba(225, 29, 72, 0.12);
+            border: 1px solid rgba(225, 29, 72, 0.3);
+            color: var(--accent-rose);
+        }
+
+        /* FOOTER */
+        .footer {
+            max-width: 1480px; margin: 20px auto 30px; padding: 0 16px;
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+            border-top: 1px solid var(--panel-border); padding-top: 14px;
+            font-size: 10.5px; color: var(--text-muted);
+        }
+        .footer-links { display: flex; gap: 14px; }
+        .footer-links a { color: var(--accent-rose); text-decoration: none; font-weight: 700; }
+        .footer-links a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="brand-box">
+            <div class="brand-icon"><i class="fas fa-radar"></i></div>
+            <div>
+                <div class="brand-title">KaskoRadar PRO <span style="font-size: 10px; color: var(--accent-rose);">v1.0</span></div>
+                <div class="brand-sub"><i class="fas fa-cube me-1"></i> bGroup // Eksik Sigorta, Rayiç Değer & Enflasyon Koruma Motoru</div>
+            </div>
+        </div>
+
+        <div class="nav-actions">
+            <button class="theme-toggle-btn" onclick="toggleTheme()">
+                <i class="fas fa-moon" id="themeIcon"></i>
+                <span id="themeText">Karanlık Mod</span>
+            </button>
+
+            <a href="https://www.linkedin.com/in/batuhanbayatlı" target="_blank" class="dev-badge-nav">
+                <img src="https://avatars.githubusercontent.com/u/255363609?v=4" alt="Batuhan Bayatlı" class="dev-avatar">
+                <div class="dev-badge-text">
+                    <div class="dev-name">Batuhan Bayatlı <i class="fab fa-linkedin" style="color: #0077b5;"></i></div>
+                    <div class="dev-role">Founder & Lead InsurTech Developer</div>
+                </div>
+            </a>
+        </div>
+    </nav>
+
+    <!-- 3M EKOSİSTEM BANDI -->
+    <div class="ecosystem-bar">
+        <div class="ecosystem-card">
+            <div class="eco-tier">
+                <span class="eco-tag tag-mutfak">Mutfak</span>
+                <span><strong>RiskOptima Labs</strong> + <strong>DATEX Tasarım</strong> + <strong>bAI</strong></span>
+            </div>
+            <div class="eco-tier">
+                <span class="eco-tag tag-model">Model</span>
+                <span><strong>SigortamRahat</strong> + <strong>bSigorta</strong></span>
+            </div>
+            <div class="eco-tier">
+                <span class="eco-tag tag-medya">Medya</span>
+                <span><strong>InsurTechTürkiye</strong> + <strong>Sigortakademi</strong> + <strong>bMedya</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANA MATRİS -->
+    <div class="main-container">
+
+        <!-- SOL PANEL: POLİÇE VE ENFLASYON GİRDİLERİ -->
+        <div class="dark-panel">
+            <div class="panel-title">
+                <span><i class="fas fa-file-contract text-rose me-2"></i>1. Poliçe & Rayiç Parametreleri</span>
+                <span style="font-size: 9.5px; color: var(--accent-rose); font-family: 'Fira Code', monospace;">TTK 1461</span>
+            </div>
+
+            <div class="form-group">
+                <label>POLİÇE BAŞLANGIÇ KASKO BEDELİ (₺)</label>
+                <input type="number" id="in_policyValue" class="form-control" value="1000000" oninput="runRadar()">
+            </div>
+
+            <div class="form-group">
+                <label>POLİÇEDE ENFLASYON KORUMA / RAYİÇ KLOZU VAR MI?</label>
+                <select id="in_hasClause" class="form-control" onchange="runRadar()">
+                    <option value="no" selected>HAYIR — Sabit Bedelli / Dar Kasko (Riskli!)</option>
+                    <option value="yes">EVET — Tam Rayiç Değer / Enflasyon Korumalı</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>GEÇEN SÜRE (AY)</label>
+                <input type="number" id="in_months" class="form-control" value="8" min="1" max="12" oninput="runRadar()">
+            </div>
+
+            <div class="form-group">
+                <label>ARAÇ PİYASASI YILLIK DEĞER ARTIŞI / ENFLASYON (%)</label>
+                <input type="number" id="in_inflationRate" class="form-control" value="45" oninput="runRadar()">
+            </div>
+
+            <div class="form-group">
+                <label>KAZA ANINDAKİ TOPLAM HASAR TUTARI (₺)</label>
+                <input type="number" id="in_claimAmount" class="form-control" value="300000" oninput="runRadar()">
+            </div>
+        </div>
+
+        <!-- ORTA PANEL: RADAR & CEPTEN ÇIKACAK GİZLİ RİSK -->
+        <div class="dark-panel">
+            <div class="panel-title">
+                <span><i class="fas fa-triangle-exclamation text-rose me-2"></i>2. Eksik Sigorta Radarı & Kesinti</span>
+                <span id="lbl_riskLevel" style="font-size: 10px; color: var(--accent-rose);">YÜKSEK RİSK</span>
+            </div>
+
+            <div class="radar-box">
+                <div class="radar-title">Cebinizden Çıkacak Gizli Kesinti</div>
+                <div class="radar-value" id="val_outOfPocket">0 ₺</div>
+                <div style="font-size: 10.5px; color: var(--text-muted);" id="lbl_ratioText">Hasarın %0'ı Eksik Sigortaya Takıldı</div>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Kaza Anındaki Güncel Rayiç Değer</div>
+                    <div class="stat-val" style="color: var(--accent-blue);" id="val_currentMarketValue">0 ₺</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Sigorta Şirketinin Ödeyeceği Tutar</div>
+                    <div class="stat-val" style="color: var(--accent-emerald);" id="val_insurancePaid">0 ₺</div>
+                </div>
+            </div>
+
+            <div class="alert-box alert-danger" id="box_alertNotice">
+                <i class="fas fa-shield-halved" style="font-size: 20px;"></i>
+                <div>
+                    <strong id="lbl_alertTitle">TTK 1461 Oran-Orantı Kuralı Devrede!</strong>
+                    <div id="lbl_alertDesc" style="font-size: 10px; opacity: 0.9;">Poliçeniz sabit bedelli olduğu için aradaki değer artışı oranında hasar ödemenizden kesinti yapıldı.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SAĞ PANEL: AKTÜERYAL DAĞILIM & GRAFİK -->
+        <div class="dark-panel">
+            <div class="panel-title">
+                <span><i class="fas fa-chart-pie text-rose me-2"></i>3. Hasar Karşılama Oranı</span>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Eksik Sigorta Oranı</div>
+                    <div class="stat-val" style="color: var(--accent-rose);" id="val_underInsuranceRate">%0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Öneri: Prim Farkı Yaklaşık</div>
+                    <div class="stat-val" style="color: var(--accent-amber);" id="val_suggestedExtraPremium">0 ₺</div>
+                </div>
+            </div>
+
+            <div style="height: 160px; position: relative;">
+                <canvas id="kaskoPieChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <div>
+            <strong>KaskoRadar PRO // bGroup InsurTech & Aktüeryal Çözümleri</strong> | Kurucu & Mimari: <strong>Batuhan Bayatlı</strong>
+        </div>
+        <div class="footer-links">
+            <a href="https://www.linkedin.com/in/batuhanbayatlı" target="_blank"><i class="fab fa-linkedin me-1"></i> LinkedIn</a>
+            <a href="https://github.com/batuhanbayatli" target="_blank"><i class="fab fa-github me-1"></i> GitHub</a>
+        </div>
+    </div>
+
+    <!-- HESAPLAMA MOTORU -->
+    <script>
+        let pieChart = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            runRadar();
+        });
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+
+            if (newTheme === 'dark') {
+                icon.className = 'fas fa-sun';
+                text.innerText = 'Aydınlık Mod';
+            } else {
+                icon.className = 'fas fa-moon';
+                text.innerText = 'Karanlık Mod';
+            }
+
+            if (pieChart) {
+                pieChart.options.plugins.legend.labels.color = newTheme === 'light' ? '#0f172a' : '#f8fafc';
+                pieChart.update();
+            }
+        }
+
+        function runRadar() {
+            const policyValue = parseFloat(document.getElementById('in_policyValue').value) || 0;
+            const hasClause = document.getElementById('in_hasClause').value === 'yes';
+            const months = parseFloat(document.getElementById('in_months').value) || 0;
+            const inflationRate = parseFloat(document.getElementById('in_inflationRate').value) || 0;
+            const claimAmount = parseFloat(document.getElementById('in_claimAmount').value) || 0;
+
+            // Kaza anındaki güncel rayiç piyasa değeri
+            const monthlyInflation = (inflationRate / 100) / 12;
+            const currentMarketValue = policyValue * (1 + (monthlyInflation * months));
+
+            let insurancePaid = 0;
+            let outOfPocket = 0;
+            let underInsuranceRate = 0;
+
+            if (hasClause || currentMarketValue <= policyValue) {
+                // Rayiç klozlu veya değer artışı olmayan poliçe
+                insurancePaid = claimAmount;
+                outOfPocket = 0;
+                underInsuranceRate = 0;
+            } else {
+                // TTK 1461 Oran-Orantı Kuralı
+                const coverageRatio = policyValue / currentMarketValue;
+                insurancePaid = claimAmount * coverageRatio;
+                outOfPocket = claimAmount - insurancePaid;
+                underInsuranceRate = ((1 - coverageRatio) * 100);
+            }
+
+            // Yaklaşık kloz prim farkı (Rayiç kloz ekleme maliyeti ~%8-12 kasko primi)
+            const approxKaskoPremium = policyValue * 0.025;
+            const suggestedExtraPremium = approxKaskoPremium * 0.12;
+
+            // DOM Güncelleme
+            document.getElementById('val_currentMarketValue').innerText = currentMarketValue.toLocaleString('tr-TR', { maximumFractionDigits: 0 }) + " ₺";
+            document.getElementById('val_insurancePaid').innerText = insurancePaid.toLocaleString('tr-TR', { maximumFractionDigits: 0 }) + " ₺";
+            document.getElementById('val_outOfPocket').innerText = outOfPocket.toLocaleString('tr-TR', { maximumFractionDigits: 0 }) + " ₺";
+            document.getElementById('val_underInsuranceRate').innerText = `%${underInsuranceRate.toFixed(1)}`;
+            document.getElementById('val_suggestedExtraPremium').innerText = suggestedExtraPremium.toLocaleString('tr-TR', { maximumFractionDigits: 0 }) + " ₺";
+
+            const riskLabel = document.getElementById('lbl_riskLevel');
+            const alertBox = document.getElementById('box_alertNotice');
+            const alertTitle = document.getElementById('lbl_alertTitle');
+            const alertDesc = document.getElementById('lbl_alertDesc');
+            const ratioText = document.getElementById('lbl_ratioText');
+
+            if (outOfPocket > 0) {
+                riskLabel.innerText = "EKSİK SİGORTA KESİNTİSİ VAR!";
+                riskLabel.style.color = "var(--accent-rose)";
+                alertBox.className = "alert-box alert-danger";
+                alertTitle.innerText = "TTK 1461 Oran-Orantı Kuralı Devrede!";
+                alertDesc.innerText = `Aracınızın rayici ${currentMarketValue.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺'ye yükselmiş. Poliçeniz sabit kaldığından hasarın %${underInsuranceRate.toFixed(1)}'lik kısmı ödenmedi.`;
+                ratioText.innerText = `Hasarın %${underInsuranceRate.toFixed(1)}'i Doğrudan Cebinizden Çıktı!`;
+            } else {
+                riskLabel.innerText = "TAM GÜVENCE (KORUMALI)";
+                riskLabel.style.color = "var(--accent-emerald)";
+                alertBox.className = "alert-box";
+                alertBox.style.background = "rgba(16, 185, 129, 0.12)";
+                alertBox.style.border = "1px solid rgba(16, 185, 129, 0.3)";
+                alertBox.style.color = "var(--accent-emerald)";
+                alertTitle.innerText = "Hasarın %100'ü Karşılanıyor!";
+                alertDesc.innerText = "Poliçenizde rayiç değer koruması bulunduğu için enflasyon kaynaklı hiçbir kesintiye uğramazsınız.";
+                ratioText.innerText = "Cebinizden Sıfır Kesinti (Tam Ödeme)";
+            }
+
+            updateChart(insurancePaid, outOfPocket);
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('kaskoPieChart').getContext('2d');
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+            pieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Şirketin Ödediği Hasar', 'Cebinizden Çıkan Kesinti'],
+                    datasets: [{
+                        data: [214000, 86000],
+                        backgroundColor: ['#10b981', '#e11d48'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { color: isLight ? '#0f172a' : '#f8fafc', font: { size: 9.5, weight: '700' } } }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        function updateChart(paid, outOfPocket) {
+            if (!pieChart) return;
+            pieChart.data.datasets[0].data = [paid, outOfPocket];
+            pieChart.update();
+        }
+    </script>
+</body>
+</html>
